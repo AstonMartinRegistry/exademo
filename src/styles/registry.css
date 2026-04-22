@@ -1,0 +1,205 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist+Mono&display=swap');
+
+:root {
+  --exa-brand-blue: #1e41ec;
+  /* Same noise tile as Hello World; overlay on solid blue (not blended as a flat bitmap). */
+  --exa-grain-noise: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --exa-grain-opacity: 0.45;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.main-layout {
+  padding-bottom: 14px;
+}
+
+.content-area {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 1rem;
+}
+
+.content {
+  text-align: center;
+}
+
+.title {
+  position: relative;
+  z-index: 1;
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: #fff;
+}
+
+.subtitle {
+  font-size: 0.625rem;
+  color: #000;
+}
+
+.title-box {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 24px;
+  background: var(--exa-brand-blue);
+  border-radius: 999px;
+  overflow: hidden;
+  font-family: "Geist Mono", ui-monospace, monospace;
+}
+
+.title-box-grain {
+  position: absolute;
+  inset: 0;
+  background-image: var(--exa-grain-noise);
+  background-repeat: repeat;
+  background-size: 128px 128px;
+  opacity: var(--exa-grain-opacity);
+  pointer-events: none;
+  mix-blend-mode: overlay;
+}
+
+/* Footer Nav Styles */
+.footer-strip {
+  --footer-hover-color: var(--exa-brand-blue);
+  --footer-chrome-bg: #f3f7fc;
+  --footer-pill-radius: 999px;
+  --footer-ink: #0f172a;
+  --footer-nav-size: 0.75rem;
+  --footer-chrome-weight: 300;
+  --footer-hover-opacity: 0;
+
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  margin-top: auto;
+}
+
+.footer-nav {
+  position: relative;
+  display: flex;
+  gap: 0;
+  width: fit-content;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 4px;
+  border-radius: var(--footer-pill-radius);
+  background: var(--footer-chrome-bg);
+  overflow: hidden;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  isolation: isolate;
+}
+
+.footer-link {
+  position: relative;
+  z-index: 2;
+  font: inherit;
+  font-size: var(--footer-nav-size);
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  color: var(--footer-ink);
+  text-decoration: underline;
+  text-decoration-color: #000000;
+  text-underline-offset: 2px;
+  font-weight: var(--footer-chrome-weight);
+  transition:
+    color 200ms cubic-bezier(0.4, 0, 0.2, 1),
+    text-decoration-color 200ms cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.footer-hover-indicator {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: var(--footer-hover-left, 0px);
+  width: var(--footer-hover-width, 0px);
+  border-radius: calc(var(--footer-pill-radius) - 4px);
+  background-color: var(--footer-hover-color);
+  opacity: var(--footer-hover-opacity);
+  pointer-events: none;
+  will-change: opacity;
+  transition: opacity 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 0;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* Same stack as .title-box: solid blue, then grain with overlay (not a single flattened background). */
+.footer-hover-indicator::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image: var(--exa-grain-noise);
+  background-repeat: repeat;
+  background-size: 128px 128px;
+  opacity: var(--exa-grain-opacity);
+  pointer-events: none;
+  mix-blend-mode: overlay;
+}
+
+.footer-nav--pill-slide .footer-hover-indicator {
+  will-change: opacity, left, width;
+  transition:
+    opacity 200ms cubic-bezier(0.4, 0, 0.2, 1),
+    left 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    width 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.footer-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  padding: 0 18px;
+  border: none;
+  border-radius: var(--footer-pill-radius);
+  background: transparent;
+  cursor: pointer;
+  transition:
+    color 200ms cubic-bezier(0.4, 0, 0.2, 1),
+    text-decoration-color 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.footer-button:focus-visible {
+  outline: none;
+}
+
+.footer-link.is-active {
+  color: #f8fbff;
+  text-decoration-color: rgba(248, 251, 255, 0.82);
+}
