@@ -1,8 +1,15 @@
 "use client";
 
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useLayoutEffect, useRef, useState } from "react";
 
-const navItems = ["about", "manifesto", "contact"] as const;
+export const EXA_DEMO_NAV = [
+  { href: "/demo/search", label: "search" },
+  { href: "/demo/contents", label: "contents" },
+  { href: "/demo/similar", label: "similar" },
+  { href: "/demo/answer", label: "answer" },
+] as const;
 
 type PillGeometry = {
   index: number;
@@ -10,26 +17,27 @@ type PillGeometry = {
   width: number;
 };
 
-export default function FooterNav() {
+export default function TopNav() {
+  const pathname = usePathname();
   const [pill, setPill] = useState<PillGeometry | null>(null);
   const [pillVisible, setPillVisible] = useState(false);
   const [slidePill, setSlidePill] = useState(false);
   const pillVisibleRef = useRef(false);
   const navRef = useRef<HTMLElement>(null);
-  const buttonRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const linkRefs = useRef<Array<HTMLAnchorElement | null>>([]);
 
   const measureIndex = (index: number): PillGeometry | null => {
     const nav = navRef.current;
-    const button = buttonRefs.current[index];
-    if (!nav || !button) {
+    const link = linkRefs.current[index];
+    if (!nav || !link) {
       return null;
     }
     const navRect = nav.getBoundingClientRect();
-    const buttonRect = button.getBoundingClientRect();
+    const linkRect = link.getBoundingClientRect();
     return {
       index,
-      left: buttonRect.left - navRect.left,
-      width: buttonRect.width,
+      left: linkRect.left - navRect.left,
+      width: linkRect.width,
     };
   };
 
@@ -79,11 +87,11 @@ export default function FooterNav() {
   }, [pill?.index]);
 
   return (
-    <div className="footer-strip">
+    <div className="top-nav-strip">
       <nav
         ref={navRef}
         className={`footer-nav${slidePill ? " footer-nav--pill-slide" : ""}`}
-        aria-label="Site links"
+        aria-label="Exa API demos"
         onPointerLeave={clearHover}
         onBlur={(event) => {
           if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
@@ -100,19 +108,20 @@ export default function FooterNav() {
       >
         <span className="footer-hover-indicator" aria-hidden="true" />
 
-        {navItems.map((item, index) => (
-          <button
-            key={item}
-            type="button"
+        {EXA_DEMO_NAV.map((item, index) => (
+          <Link
+            key={item.href}
+            href={item.href}
             ref={(element) => {
-              buttonRefs.current[index] = element;
+              linkRefs.current[index] = element;
             }}
             className={`footer-link footer-button${pillVisible && pill?.index === index ? " is-active" : ""}`}
+            aria-current={pathname === item.href ? "page" : undefined}
             onPointerEnter={() => setHover(index)}
             onFocus={() => setHover(index)}
           >
-            {item}
-          </button>
+            {item.label}
+          </Link>
         ))}
       </nav>
     </div>
