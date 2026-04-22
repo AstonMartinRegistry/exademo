@@ -2,14 +2,26 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 export const EXA_DEMO_NAV = [
-  { href: "/demo/search", label: "search" },
-  { href: "/demo/contents", label: "contents" },
-  { href: "/demo/similar", label: "similar" },
-  { href: "/demo/answer", label: "answer" },
+  { href: "/test", label: "hub" },
+  { href: "/test/search", label: "search" },
+  { href: "/test/people", label: "people" },
+  { href: "/test/company", label: "company" },
+  { href: "/test/contents", label: "contents" },
+  { href: "/test/similar", label: "similar" },
+  { href: "/test/answer", label: "answer" },
+  { href: "/test/2-step", label: "2-step" },
 ] as const;
+
+/** Home shell — latest = live filings on `/`; about = how it works. */
+export const HOME_TOP_NAV = [
+  { href: "/", label: "latest" },
+  { href: "/about", label: "about" },
+] as const;
+
+export type TopNavItem = { href: string; label: string };
 
 type PillGeometry = {
   index: number;
@@ -17,41 +29,40 @@ type PillGeometry = {
   width: number;
 };
 
-export default function TopNav() {
+type TopNavProps = {
+  items?: readonly TopNavItem[];
+  ariaLabel?: string;
+};
+
+export default function TopNav({
+  items = EXA_DEMO_NAV,
+  ariaLabel = "Exa API demos",
+}: TopNavProps = {}) {
   const pathname = usePathname();
   const [pill, setPill] = useState<PillGeometry | null>(null);
   const [pillVisible, setPillVisible] = useState(false);
   const [slidePill, setSlidePill] = useState(false);
   const pillVisibleRef = useRef(false);
   const navRef = useRef<HTMLElement>(null);
-  const linkRefs = useRef<Array<HTMLAnchorElement | null>>([]);
 
-  const measureIndex = (index: number): PillGeometry | null => {
+  const measureLink = (link: HTMLAnchorElement | null, index: number): PillGeometry | null => {
     const nav = navRef.current;
-    const link = linkRefs.current[index];
-    if (!nav || !link) {
-      return null;
-    }
+    if (!nav || !link) return null;
     const navRect = nav.getBoundingClientRect();
     const linkRect = link.getBoundingClientRect();
-    return {
-      index,
-      left: linkRect.left - navRect.left,
-      width: linkRect.width,
-    };
+    return { index, left: linkRect.left - navRect.left, width: linkRect.width };
   };
 
-  const setHover = (index: number) => {
-    const next = measureIndex(index);
-    if (!next) {
-      return;
-    }
-
+  const setHoverFromEvent = (
+    event: React.PointerEvent<HTMLAnchorElement> | React.FocusEvent<HTMLAnchorElement>,
+    index: number,
+  ) => {
+    const next = measureLink(event.currentTarget, index);
+    if (!next) return;
     const wasVisible = pillVisibleRef.current;
     setPill(next);
     pillVisibleRef.current = true;
     setPillVisible(true);
-
     if (wasVisible) {
       setSlidePill(true);
     } else {
@@ -68,30 +79,32 @@ export default function TopNav() {
     setPillVisible(false);
   };
 
+  useEffect(() => {
+    clearHover();
+  }, [pathname]);
+
   useLayoutEffect(() => {
-    if (pill === null) {
-      return;
-    }
-
-    const index = pill.index;
-
+    if (pill === null) return;
     const handleResize = () => {
-      const next = measureIndex(index);
-      if (next) {
-        setPill(next);
-      }
+      const nav = navRef.current;
+      if (!nav) return;
+      const link = nav.querySelectorAll<HTMLAnchorElement>("a.footer-link")[pill.index];
+      const next = measureLink(link ?? null, pill.index);
+      if (next) setPill(next);
     };
-
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, [pill?.index]);
+
+  const pathMatches = (href: string) =>
+    pathname === href || (href !== "/" && pathname === `${href}/`);
 
   return (
     <div className="top-nav-strip">
       <nav
         ref={navRef}
         className={`footer-nav${slidePill ? " footer-nav--pill-slide" : ""}`}
-        aria-label="Exa API demos"
+        aria-label={ariaLabel}
         onPointerLeave={clearHover}
         onBlur={(event) => {
           if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
@@ -108,17 +121,14 @@ export default function TopNav() {
       >
         <span className="footer-hover-indicator" aria-hidden="true" />
 
-        {EXA_DEMO_NAV.map((item, index) => (
+        {items.map((item, index) => (
           <Link
             key={item.href}
             href={item.href}
-            ref={(element) => {
-              linkRefs.current[index] = element;
-            }}
             className={`footer-link footer-button${pillVisible && pill?.index === index ? " is-active" : ""}`}
-            aria-current={pathname === item.href ? "page" : undefined}
-            onPointerEnter={() => setHover(index)}
-            onFocus={() => setHover(index)}
+            aria-current={pathMatches(item.href) ? "page" : undefined}
+            onPointerEnter={(e) => setHoverFromEvent(e, index)}
+            onFocus={(e) => setHoverFromEvent(e, index)}
           >
             {item.label}
           </Link>
